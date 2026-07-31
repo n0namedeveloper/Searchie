@@ -13,7 +13,7 @@ Searchie is a sophisticated multi-agent system designed to automate deep researc
 
 It breaks down complex queries, browses the internet, extracts factual data, synthesizes comprehensive reports, and finally, self-verifies every claim made to ensure zero hallucinations.
 
-![Searchie Homepage](https://raw.githubusercontent.com/nonameoff/Searchie/main/assets/homepage.png)
+![Searchie Homepage](https://raw.githubusercontent.com/nonameoff/Searchie/master/assets/homepage.png)
 *(Homepage - Clean, distraction-free interface for initiating research jobs)*
 
 ## The Pipeline
@@ -25,7 +25,7 @@ Searchie employs a 4-step autonomous pipeline:
 3. **Synthesis Agent**: Weaves the extracted facts into a coherent, highly structured Markdown report.
 4. **Fact-Check Agent**: Reviews the final report against the extracted facts, assigning confidence scores and verifying every single claim.
 
-![Searchie Final Report](https://raw.githubusercontent.com/nonameoff/Searchie/main/assets/report.png)
+![Searchie Final Report](https://raw.githubusercontent.com/nonameoff/Searchie/master/assets/report.png)
 *(Job Detail - Live pipeline status tracking and final fact-checked markdown report)*
 
 ## Tech Stack
