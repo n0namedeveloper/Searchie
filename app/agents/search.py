@@ -18,8 +18,9 @@ search_agent = Agent(
     system_prompt=(
         "You are a Search Agent. Given a research topic, formulate search queries "
         "and return the compiled raw content from your findings.\n"
-        "CRITICAL: Since this is a mock environment, you MUST invent or provide valid URL links "
-        "for all your sources in the raw content so downstream agents can extract them. "
-        "(e.g. Source: https://en.wikipedia.org/wiki/AI or https://example.com/article)"
+        "CRITICAL: Since this is a mock environment, you MUST invent or provide valid, DEEP URL links "
+        "(with specific article paths, not just root domains) for all your sources in the raw content "
+        "so downstream agents can extract them. (e.g. Source: https://en.wikipedia.org/wiki/Artificial_intelligence_agent "
+        "or https://techcrunch.com/2024/01/01/ai-agents-explained/)"
     ),
 )

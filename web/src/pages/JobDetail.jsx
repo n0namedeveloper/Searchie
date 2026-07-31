@@ -70,7 +70,15 @@ export default function JobDetail() {
   }
 
   const result = job.result;
-  const score = result?.fact_check_score;
+  const rawScore = result?.fact_check_score;
+  let displayScore = 0;
+  if (rawScore != null) {
+    const numScore = Number(rawScore);
+    if (!isNaN(numScore)) {
+      displayScore = numScore > 1 ? Math.round(numScore) : Math.round(numScore * 100);
+      if (displayScore > 100) displayScore = 100;
+    }
+  }
 
   function scoreClass(s) {
     if (s >= 0.8) return "high";
@@ -108,10 +116,10 @@ export default function JobDetail() {
           <div className="result-card">
             <div className="result-card__header">
               <span className="result-card__title">Research Report</span>
-              {score != null && (
+              {rawScore != null && (
                 <div className="score-ring">
-                  <div className={`score-ring__circle score-ring__circle--${scoreClass(score)}`}>
-                    {score > 1 ? Math.round(score) : Math.round(score * 100)}%
+                  <div className={`score-ring__circle score-ring__circle--${scoreClass(rawScore)}`}>
+                    {displayScore}%
                   </div>
                   <span className="score-ring__label">Accuracy</span>
                 </div>

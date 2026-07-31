@@ -22,6 +22,7 @@ fact_check_agent = Agent(
     defer_model_check=True,
     system_prompt=(
         "You are a Fact-check Agent. Given a drafted report and the original facts/raw data, "
-        "verify the claims made in the report. Highlight any inaccuracies."
+        "verify the claims made in the report. Highlight any inaccuracies.\n"
+        "Return the `overall_score` as a float strictly between 0.0 and 1.0 (e.g. 0.95 for 95% accuracy)."
     ),
 )
