@@ -11,6 +11,11 @@ build/
 # Node / Frontend
 web/node_modules/
 web/dist/
+web/.env
+
+# Database
+*.db
+*.sqlite3
 
 # IDE
 .vscode/
