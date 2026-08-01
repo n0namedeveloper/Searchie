@@ -121,4 +121,5 @@ Visit `http://localhost:5174` in your browser.
 MIT License. See `LICENSE` for more information.
 
 ---
-*Architected and developed to solve real-world AI hallucination problems with verifiable truth.*
+*Made with ❤️ and 🤖 by Artsiom Beniash. Make the world a better place to live! <3*
+
