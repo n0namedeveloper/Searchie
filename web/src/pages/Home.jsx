@@ -5,6 +5,7 @@ import StatusBadge from "../components/StatusBadge";
 
 export default function Home() {
   const [topic, setTopic] = useState("");
+  const [depth, setDepth] = useState("standard");
   const [loading, setLoading] = useState(false);
   const [jobs, setJobs] = useState(() => {
     try {
@@ -26,7 +27,7 @@ export default function Home() {
     if (!topic.trim() || loading) return;
     setLoading(true);
     try {
-      const data = await submitJob(topic.trim());
+      const data = await submitJob(topic.trim(), depth);
       const entry = {
         id: data.job_id,
         topic: topic.trim(),
@@ -58,29 +59,48 @@ export default function Home() {
         </p>
 
         <form className="search-box" onSubmit={handleSubmit}>
-          <input
-            id="search-input"
-            className="search-box__input"
-            type="text"
-            placeholder="Enter a research topic…"
-            value={topic}
-            onChange={(e) => setTopic(e.target.value)}
-            autoFocus
-          />
-          <button
-            id="search-submit"
-            className="search-box__btn"
-            type="submit"
-            disabled={loading || !topic.trim()}
-          >
-            {loading ? (
-              <>
-                <span className="spinner" /> Submitting…
-              </>
-            ) : (
-              "Research"
-            )}
-          </button>
+          <div style={{ display: "flex", flexDirection: "column", gap: 12, width: "100%" }}>
+            <div style={{ display: "flex", gap: 8 }}>
+              <input
+                id="search-input"
+                className="search-box__input"
+                type="text"
+                placeholder="Enter a research topic…"
+                value={topic}
+                onChange={(e) => setTopic(e.target.value)}
+                autoFocus
+                style={{ flex: 1 }}
+              />
+              <button
+                id="search-submit"
+                className="search-box__btn"
+                type="submit"
+                disabled={loading || !topic.trim()}
+              >
+                {loading ? (
+                  <><span className="spinner" /> Submitting…</>
+                ) : (
+                  "Research"
+                )}
+              </button>
+            </div>
+            
+            <div style={{ display: "flex", alignItems: "center", gap: 12, paddingLeft: 16 }}>
+              <span style={{ fontSize: "0.9rem", color: "var(--text-muted)" }}>Depth:</span>
+              <label style={{ display: "flex", alignItems: "center", gap: 4, cursor: "pointer", fontSize: "0.9rem" }}>
+                <input type="radio" value="quick" checked={depth === "quick"} onChange={e => setDepth(e.target.value)} />
+                Quick
+              </label>
+              <label style={{ display: "flex", alignItems: "center", gap: 4, cursor: "pointer", fontSize: "0.9rem" }}>
+                <input type="radio" value="standard" checked={depth === "standard"} onChange={e => setDepth(e.target.value)} />
+                Standard
+              </label>
+              <label style={{ display: "flex", alignItems: "center", gap: 4, cursor: "pointer", fontSize: "0.9rem" }}>
+                <input type="radio" value="deep" checked={depth === "deep"} onChange={e => setDepth(e.target.value)} />
+                Deep
+              </label>
+            </div>
+          </div>
         </form>
       </section>
 

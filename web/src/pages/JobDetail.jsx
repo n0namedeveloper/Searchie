@@ -1,7 +1,7 @@
 import { useParams, Link } from "react-router-dom";
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect } from "react";
 import ReactMarkdown from "react-markdown";
-import { getJob } from "../api/client";
+import { API_BASE } from "../api/client";
 import Pipeline from "../components/Pipeline";
 import StatusBadge from "../components/StatusBadge";
 
@@ -9,41 +9,69 @@ export default function JobDetail() {
   const { id } = useParams();
   const [job, setJob] = useState(null);
   const [error, setError] = useState(null);
-  const intervalRef = useRef(null);
+  const [reportStream, setReportStream] = useState("");
 
   useEffect(() => {
     let mounted = true;
+    const eventSource = new EventSource(`${API_BASE}/api/v1/jobs/${id}/stream`);
 
-    async function poll() {
-      try {
-        const data = await getJob(id);
-        if (!mounted) return;
-        setJob(data);
-        if (data.status === "completed" || data.status === "error") {
-          clearInterval(intervalRef.current);
-        }
-      } catch (err) {
-        if (!mounted) return;
-        setError(err.message);
-        clearInterval(intervalRef.current);
+    eventSource.addEventListener("init", (e) => {
+      if (!mounted) return;
+      const data = JSON.parse(e.data);
+      setJob(data);
+      if (data.result && data.result.report) {
+         setReportStream(data.result.report);
       }
-    }
+    });
 
-    poll();
-    intervalRef.current = setInterval(poll, 2000);
+    eventSource.addEventListener("step", (e) => {
+      if (!mounted) return;
+      const step = JSON.parse(e.data);
+      setJob(prev => prev ? { ...prev, step } : null);
+    });
+
+    eventSource.addEventListener("stream", (e) => {
+      if (!mounted) return;
+      const chunk = JSON.parse(e.data);
+      setReportStream(prev => prev + chunk);
+    });
+
+    eventSource.addEventListener("completed", (e) => {
+      if (!mounted) return;
+      const result = JSON.parse(e.data);
+      setJob(prev => prev ? { ...prev, status: "completed", result } : null);
+      if (result.report) setReportStream(result.report);
+      eventSource.close();
+    });
+
+    eventSource.addEventListener("error", (e) => {
+      if (!mounted) return;
+      const errMsg = JSON.parse(e.data);
+      setError(errMsg);
+      setJob(prev => prev ? { ...prev, status: "error" } : null);
+      eventSource.close();
+    });
 
     return () => {
       mounted = false;
-      clearInterval(intervalRef.current);
+      eventSource.close();
     };
   }, [id]);
+
+  const handleExport = () => {
+    const blob = new Blob([reportStream], { type: "text/markdown;charset=utf-8" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `${job?.topic || "research"}.md`;
+    a.click();
+    URL.revokeObjectURL(url);
+  };
 
   if (error) {
     return (
       <>
-        <Link to="/" className="back-link">
-          ← Back
-        </Link>
+        <Link to="/" className="back-link">← Back</Link>
         <div className="empty-state">
           <div className="empty-state__icon">⚠️</div>
           <div className="empty-state__title">Error loading job</div>
@@ -56,14 +84,10 @@ export default function JobDetail() {
   if (!job) {
     return (
       <>
-        <Link to="/" className="back-link">
-          ← Back
-        </Link>
+        <Link to="/" className="back-link">← Back</Link>
         <div className="empty-state">
           <span className="spinner" />
-          <div className="empty-state__title" style={{ marginTop: 16 }}>
-            Loading…
-          </div>
+          <div className="empty-state__title" style={{ marginTop: 16 }}>Loading…</div>
         </div>
       </>
     );
@@ -88,14 +112,10 @@ export default function JobDetail() {
 
   return (
     <>
-      <Link to="/" className="back-link">
-        ← Back to research
-      </Link>
+      <Link to="/" className="back-link">← Back to research</Link>
 
       <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 8 }}>
-        <h1 style={{ fontSize: "1.4rem", fontWeight: 700, flex: 1 }}>
-          {job.topic || "Research Job"}
-        </h1>
+        <h1 style={{ fontSize: "1.4rem", fontWeight: 700, flex: 1 }}>{job.topic || "Research Job"}</h1>
         <StatusBadge status={job.status} />
       </div>
 
@@ -107,23 +127,32 @@ export default function JobDetail() {
             <span className="spinner" />
             Processing step: <strong style={{ color: "var(--accent)" }}>{job.step}</strong>
           </div>
+          {reportStream && (
+            <div className="report-body" style={{ marginTop: 20 }}>
+              <ReactMarkdown>{reportStream}</ReactMarkdown>
+            </div>
+          )}
         </div>
       )}
 
-      {job.status === "completed" && result && (
+      {job.status === "completed" && (
         <>
-          {/* Report */}
           <div className="result-card">
             <div className="result-card__header">
               <span className="result-card__title">Research Report</span>
-              {rawScore != null && (
-                <div className="score-ring">
-                  <div className={`score-ring__circle score-ring__circle--${scoreClass(rawScore)}`}>
-                    {displayScore}%
+              <div style={{ display: "flex", alignItems: "center", gap: 16 }}>
+                <button onClick={handleExport} className="search-box__btn" style={{ padding: "8px 16px", fontSize: "0.9rem" }}>
+                  Export .MD
+                </button>
+                {rawScore != null && (
+                  <div className="score-ring">
+                    <div className={`score-ring__circle score-ring__circle--${scoreClass(rawScore)}`}>
+                      {displayScore}%
+                    </div>
+                    <span className="score-ring__label">Accuracy</span>
                   </div>
-                  <span className="score-ring__label">Accuracy</span>
-                </div>
-              )}
+                )}
+              </div>
             </div>
             <div className="report-body">
               <ReactMarkdown
@@ -131,13 +160,12 @@ export default function JobDetail() {
                   a: ({ node, ...props }) => <a target="_blank" rel="noopener noreferrer" {...props} />
                 }}
               >
-                {result.report || ""}
+                {reportStream}
               </ReactMarkdown>
             </div>
           </div>
 
-          {/* Fact-check verifications */}
-          {result.verifications && result.verifications.length > 0 && (
+          {result?.verifications && result.verifications.length > 0 && (
             <div className="result-card">
               <div className="result-card__header">
                 <span className="result-card__title">Fact-check Verifications</span>
